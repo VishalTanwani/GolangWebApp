@@ -1,0 +1,114 @@
+{{template "base" .}}
+{{define "content"}}
+     <div class="container">
+      <div class="row">
+        <div class="col">
+          <img
+            src="/static/images/generals-quarters.png"
+            class="img-fluid mx-auto d-block room-image img-thumbnail"
+            alt="room Image"
+          />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <h1 class="text-center">General's Quarters</h1>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
+            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+            aliquip ex ea commodo consequat. Duis aute irure dolor in
+            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+            culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum
+            dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+            veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
+            ea commodo consequat. Duis aute irure dolor in reprehenderit in
+            voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+            officia deserunt mollit anim id est laborum.
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col text-center">
+          <a href="#!" id="check-availability-button" class="btn btn-success">Check Availability</a>
+        </div>
+      </div>
+    </div>
+{{end}}
+{{define "js"}}
+    <script>
+        document.getElementById("check-availability-button").addEventListener("click", function () {
+            // notify("this is message", "success");
+            // notifyModal("title", "<em>hello, world</em>", "success", "my text")
+            let html = `<form
+                action="reservation.html"
+                id="check-availability-form"
+                method="GET"
+                novalidate
+                class="needs-validation"
+            >
+                <div class="row">
+                    <div class="col">
+                        <div class="row" id="reservation-date-modal">
+                            <div class="col">
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    name="start"
+                                    id="start"
+                                    required
+                                    disabled
+                                    placeholder="Arrival"
+                                />
+                            </div>
+
+                            <div class="col">
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    name="end"
+                                    id="end"
+                                    required
+                                    disabled
+                                    placeholder="Departure"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>`;
+            myFunc.custom({ 
+                title: "Choose yours dates", 
+                html: html, 
+                willOpen: () => {
+                    const elem = document.getElementById("reservation-date-modal");
+                    const rangepicker = new DateRangePicker(elem, {
+                        format: "yyyy-mm-dd",
+                    });
+                },
+                didOpen: () => {
+                    document.getElementById("start").removeAttribute("disabled");
+                    document.getElementById("end").removeAttribute("disabled");
+                },
+                callback: function(){
+                    console.log("called");
+                    let form = document.getElementById("check-availability-form")
+                    let formData = new FormData(form)
+                    formData.append("csrf_token","{{.CSRFToken}}")
+                    fetch("/search-availability-json", {
+                        method: "post",
+                        body: formData,
+                        
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data)
+                    })
+                } 
+            });
+        });
+    </script>
+{{end}}

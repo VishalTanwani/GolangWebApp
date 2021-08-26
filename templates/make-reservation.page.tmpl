@@ -1,0 +1,49 @@
+{{template "base" .}}
+{{define "content"}}
+     <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+              <h1 class="mt-3">Make a reservation</h1>
+              <h5>Reservation details</h5>
+
+              {{$res := index .Data "reservation"}}
+
+              <form action="/make-reservation" method="POST" novalidate>
+                <input type="hidden" name="csrf_token" value={{.CSRFToken}}>
+                <div class="row">
+                    <div>
+                    <label for="first_name" class="form-label">First name:</label>
+                    {{with .Form.Errors.Get "first_name"}}
+                        <label class="text-danger">{{.}}</label>
+                    {{end}}
+                        <input required type="text" class="form-control {{with .Form.Errors.Get "first_name"}} is-invalid {{end}}" id="first_name" name="first_name" value="{{$res.FirstName}}" aria-describedby="StartDateHelp">
+                    </div>
+                    <div>
+                    <label for="last_name" class="form-label">Last name:</label>
+                    {{with .Form.Errors.Get "last_name"}}
+                        <label class="text-danger">{{.}}</label>
+                    {{end}}
+                        <input required type="text" class="form-control {{with .Form.Errors.Get "last_name"}} is-invalid {{end}}" id="last_name" name="last_name" value="{{$res.LastName}}" aria-describedby="StartDateHelp">
+                    </div>
+                    <div>
+                    <label for="email" class="form-label">Email:</label>
+                    {{with .Form.Errors.Get "email"}}
+                        <label class="text-danger">{{.}}</label>
+                    {{end}}
+                        <input required type="email" class="form-control {{with .Form.Errors.Get "email"}} is-invalid {{end}}" id="email" name="email" value="{{$res.Email}}" aria-describedby="StartDateHelp">
+                    </div>
+                    <div>
+                    <label for="phone" class="form-label">Phone number:</label>
+                    {{with .Form.Errors.Get "phone"}}
+                        <label class="text-danger">{{.}}</label>
+                    {{end}}
+                        <input required type="text" class="form-control {{with .Form.Errors.Get "phone"}} is-invalid {{end}}" id="phone" name="phone" value="{{$res.Phone}}" aria-describedby="StartDateHelp">
+                    </div>
+                </div>
+                <hr>
+                <button type="submit" class="btn btn-primary">Make reservation</button>
+              </form>
+            </div>
+          </div>
+    </div>
+{{end}}

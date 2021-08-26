@@ -1,5 +1,9 @@
 package modals
 
+import (
+	"github.com/VishalTanwani/GolangWebApp/internal/forms"
+)
+
 //TemplateData hold data sent to template from handlers
 type TemplateData struct {
 	StringMap map[string]string
@@ -8,6 +12,7 @@ type TemplateData struct {
 	Data      map[string]interface{}
 	CSRFToken string
 	Flash     string
-	warning   string
+	Warning   string
 	Error     string
+	Form      *forms.Form
 }

@@ -1,14 +1,16 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"github.com/alexedwards/scs/v2"
 	"log"
 	"net/http"
 	"time"
-	"webApp/pkg/config"
-	"webApp/pkg/handler"
-	"webApp/pkg/render"
+	"github.com/VishalTanwani/GolangWebApp/internal/config"
+	"github.com/VishalTanwani/GolangWebApp/internal/handler"
+	"github.com/VishalTanwani/GolangWebApp/internal/modals"
+	"github.com/VishalTanwani/GolangWebApp/internal/render"
 )
 
 const port = ":5000"
@@ -17,6 +19,9 @@ var app config.AppConfig
 var session *scs.SessionManager
 
 func main() {
+	//what i am going to put in session
+	gob.Register(modals.Reservation{})
+	//change this to true in production
 	app.InProduction = false
 
 	session = scs.New()

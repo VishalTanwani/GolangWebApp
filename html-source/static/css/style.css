@@ -1,0 +1,17 @@
+.my-footer {
+    margin-top: 1.5em;
+    background-color: #163b65;
+    height: 5em;
+    padding: 1em;
+    color: #fff;
+    font-size: 80%;
+  }
+  .room-image {
+    width: 50%;
+  }
+  .redText {
+    color: red;
+  }
+  .datepicker {
+    z-index: 10000;
+  }
