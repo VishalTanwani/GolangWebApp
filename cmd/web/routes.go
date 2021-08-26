@@ -1,11 +1,11 @@
 package main
 
 import (
+	"github.com/VishalTanwani/GolangWebApp/internal/config"
+	"github.com/VishalTanwani/GolangWebApp/internal/handler"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
-	"github.com/VishalTanwani/GolangWebApp/internal/config"
-	"github.com/VishalTanwani/GolangWebApp/internal/handler"
 )
 
 func routes(app *config.AppConfig) http.Handler {
