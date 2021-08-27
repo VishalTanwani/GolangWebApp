@@ -3,11 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"github.com/VishalTanwani/GolangWebApp/internal/config"
 	"github.com/VishalTanwani/GolangWebApp/internal/forms"
 	"github.com/VishalTanwani/GolangWebApp/internal/modals"
 	"github.com/VishalTanwani/GolangWebApp/internal/render"
+	"net/http"
 )
 
 //Repository is repository type
@@ -49,11 +49,6 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
 	render.Templates(w, r, "about.page.tmpl", &modals.TemplateData{
 		StringMap: stringMap,
 	})
-}
-
-//Reservation is for make reservatin and display forms page handler
-func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
-	render.Templates(w, r, "make-reservation.page.tmpl", &modals.TemplateData{})
 }
 
 //Generals is room page handler
@@ -130,10 +125,10 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 	form := forms.New(r.PostForm)
 
-	// form.Has("first_name", r)
+	// form.Has("first_name")
 	form.Required("first_name", "last_name", "email")
-	form.MinLength("first_name", 3, r)
-	form.IsEmail("email", r)
+	form.MinLength("first_name", 3)
+	form.IsEmail("email")
 
 	if !form.Valid() {
 		data := make(map[string]interface{})
@@ -154,11 +149,11 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 //ReservationSummary is Reservation-Summary page handler
 func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
-	reservation,ok := m.App.Session.Get(r.Context(),"reservation").(modals.Reservation)
+	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(modals.Reservation)
 	if !ok {
 		fmt.Println("cannot get data from session")
-		m.App.Session.Put(r.Context(),"error","cant get reservation rom session")
-		http.Redirect(w,r,"/",http.StatusTemporaryRedirect)
+		m.App.Session.Put(r.Context(), "error", "cant get reservation rom session")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 	m.App.Session.Remove(r.Context(), "reservation")

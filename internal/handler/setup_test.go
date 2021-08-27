@@ -2,19 +2,19 @@ package handler
 
 import (
 	"encoding/gob"
-	"github.com/alexedwards/scs/v2"
-	"log"
-	"net/http"
 	"fmt"
-	"time"
-	"github.com/go-chi/chi/v5"
-	"github.com/justinas/nosurf"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/VishalTanwani/GolangWebApp/internal/config"
 	"github.com/VishalTanwani/GolangWebApp/internal/modals"
 	"github.com/VishalTanwani/GolangWebApp/internal/render"
-	"path/filepath"
+	"github.com/alexedwards/scs/v2"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/justinas/nosurf"
 	"html/template"
+	"log"
+	"net/http"
+	"path/filepath"
+	"time"
 )
 
 var app config.AppConfig
@@ -23,7 +23,7 @@ var functions = template.FuncMap{}
 
 var pathToTemplates = "./../../templates"
 
-func getRoutes() http.Handler{
+func getRoutes() http.Handler {
 	//what i am going to put in session
 	gob.Register(modals.Reservation{})
 	//change this to true in production
@@ -47,7 +47,7 @@ func getRoutes() http.Handler{
 
 	Repo := NewRepo(&app)
 	NewHandler(Repo)
-	render.NewTemplates(&app)	
+	render.NewTemplates(&app)
 
 	mux := chi.NewRouter()
 
@@ -97,7 +97,7 @@ func SessionLoad(next http.Handler) http.Handler {
 func CreateTestTemplatesCache() (map[string]*template.Template, error) {
 	myCache := map[string]*template.Template{}
 
-	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.tmpl",pathToTemplates))
+	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.tmpl", pathToTemplates))
 	if err != nil {
 		return myCache, err
 	}
@@ -110,13 +110,13 @@ func CreateTestTemplatesCache() (map[string]*template.Template, error) {
 			return myCache, err
 		}
 
-		matches, err := filepath.Glob(fmt.Sprintf("%s/*.layout.tmpl",pathToTemplates))
+		matches, err := filepath.Glob(fmt.Sprintf("%s/*.layout.tmpl", pathToTemplates))
 		if err != nil {
 			return myCache, err
 		}
 
 		if len(matches) > 0 {
-			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.layout.tmpl",pathToTemplates))
+			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.layout.tmpl", pathToTemplates))
 			if err != nil {
 				return myCache, err
 			}
@@ -127,4 +127,3 @@ func CreateTestTemplatesCache() (map[string]*template.Template, error) {
 	return myCache, nil
 
 }
-
