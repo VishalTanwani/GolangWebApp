@@ -2,10 +2,10 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/VishalTanwani/GolangWebApp/internal/config"
 	"github.com/VishalTanwani/GolangWebApp/internal/forms"
 	"github.com/VishalTanwani/GolangWebApp/internal/modals"
+	"github.com/VishalTanwani/GolangWebApp/internal/helpers"
 	"github.com/VishalTanwani/GolangWebApp/internal/render"
 	"net/http"
 )
@@ -32,23 +32,12 @@ func NewHandler(r *Repository) {
 
 //Home is home page handler
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
-	remoteIP := r.RemoteAddr
-	fmt.Println(remoteIP)
-	m.App.Session.Put(r.Context(), "remote_ip", remoteIP)
-
 	render.Templates(w, r, "home.page.tmpl", &modals.TemplateData{})
 }
 
 //About is about page handler
 func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
-	stringMap := make(map[string]string)
-	stringMap["test"] = "hello again!"
-
-	remoteIP := m.App.Session.GetString(r.Context(), "remote_ip")
-	stringMap["remote_ip"] = remoteIP
-	render.Templates(w, r, "about.page.tmpl", &modals.TemplateData{
-		StringMap: stringMap,
-	})
+	render.Templates(w, r, "about.page.tmpl", &modals.TemplateData{})
 }
 
 //Generals is room page handler
@@ -80,7 +69,8 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 
 	out, err := json.MarshalIndent(resp, "", "  ")
 	if err != nil {
-		fmt.Println("error at converting obj to json", err)
+		helpers.ServerError(w,err)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(out)
@@ -112,7 +102,7 @@ func (m *Repository) MakeReservation(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		fmt.Println("error at parsing the fofm", err)
+		helpers.ServerError(w,err)
 		return
 	}
 
@@ -151,7 +141,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(modals.Reservation)
 	if !ok {
-		fmt.Println("cannot get data from session")
+		m.App.ErrorLog.Println("cant get error from session")
 		m.App.Session.Put(r.Context(), "error", "cant get reservation rom session")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return

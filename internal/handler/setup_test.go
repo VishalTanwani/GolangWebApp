@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"os"
 	"time"
 )
 
@@ -28,6 +29,12 @@ func getRoutes() http.Handler {
 	gob.Register(modals.Reservation{})
 	//change this to true in production
 	app.InProduction = false
+
+	infoLog := log.New(os.Stdout, "INFO\t",log.Ldate|log.Ltime)
+	app.InfoLog = infoLog
+
+	errorLog := log.New(os.Stdout, "ERROR\t",log.Ldate|log.Ltime|log.Lshortfile)
+	app.ErrorLog = errorLog
 
 	session = scs.New()
 
