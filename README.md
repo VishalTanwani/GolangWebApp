@@ -6,7 +6,7 @@ this is for learning purpose
 - Uses [nosurf](github.com/justinas/nosurf)
 
 to run the application wirte this in ur terminal/cmd
-```go
-go run cmd/web/*.go
+```
+./run.sh
 ```
 and now open localhost:5000

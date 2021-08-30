@@ -1,35 +1,35 @@
 package forms
 
 import (
-	"net/url"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
-func TestValid(t *testing.T){
-	r := httptest.NewRequest("POST","/whatever",nil)
+func TestValid(t *testing.T) {
+	r := httptest.NewRequest("POST", "/whatever", nil)
 	form := New(r.PostForm)
 	if !form.Valid() {
 		t.Error("got invalid form")
 	}
 }
 
-func TestRequired(t *testing.T){
-	r := httptest.NewRequest("POST","/whatever",nil)
+func TestRequired(t *testing.T) {
+	r := httptest.NewRequest("POST", "/whatever", nil)
 	form := New(r.PostForm)
 
-	form.Required("a","b","c")
+	form.Required("a", "b", "c")
 	if form.Valid() {
 		t.Error("got valid form where it should be invalid")
 	}
 
 	postData := url.Values{}
 
-	postData.Add("a","a")
-	postData.Add("b","b")
-	postData.Add("c","c")
-	
-	r = httptest.NewRequest("POST","/whatever",nil)
+	postData.Add("a", "a")
+	postData.Add("b", "b")
+	postData.Add("c", "c")
+
+	r = httptest.NewRequest("POST", "/whatever", nil)
 
 	r.PostForm = postData
 	form = New(r.PostForm)
@@ -39,8 +39,8 @@ func TestRequired(t *testing.T){
 	}
 }
 
-func TestHas(t *testing.T){
-	r := httptest.NewRequest("POST","/whatever",nil)
+func TestHas(t *testing.T) {
+	r := httptest.NewRequest("POST", "/whatever", nil)
 	form := New(r.PostForm)
 
 	if form.Has("a") {
@@ -48,7 +48,7 @@ func TestHas(t *testing.T){
 	}
 
 	postData := url.Values{}
-	postData.Add("a","a")
+	postData.Add("a", "a")
 
 	form = New(postData)
 
@@ -57,8 +57,8 @@ func TestHas(t *testing.T){
 	}
 }
 
-func TestIsEmail(t *testing.T){
-	r := httptest.NewRequest("POST","/whatever",nil)
+func TestIsEmail(t *testing.T) {
+	r := httptest.NewRequest("POST", "/whatever", nil)
 	form := New(r.PostForm)
 	form.IsEmail("email")
 
@@ -67,7 +67,7 @@ func TestIsEmail(t *testing.T){
 	}
 
 	postData := url.Values{}
-	postData.Add("email","vishal@gmail.com")
+	postData.Add("email", "vishal@gmail.com")
 
 	form = New(postData)
 
@@ -78,10 +78,10 @@ func TestIsEmail(t *testing.T){
 	}
 
 	postData = url.Values{}
-	postData.Add("email","vishalgmail.com")
+	postData.Add("email", "vishalgmail.com")
 
 	form = New(postData)
-	
+
 	form.IsEmail("email")
 
 	if form.Valid() {
@@ -89,11 +89,11 @@ func TestIsEmail(t *testing.T){
 	}
 }
 
-func TestMinLength(t *testing.T){
-	r := httptest.NewRequest("POST","/whatever",nil)
+func TestMinLength(t *testing.T) {
+	r := httptest.NewRequest("POST", "/whatever", nil)
 	form := New(r.PostForm)
 
-	form.MinLength("first_name",3)
+	form.MinLength("first_name", 3)
 
 	if form.Valid() {
 		t.Error("it shows length of non-exist filed")
@@ -105,18 +105,18 @@ func TestMinLength(t *testing.T){
 	}
 
 	postData := url.Values{}
-	postData.Add("first_name","vishal")
+	postData.Add("first_name", "vishal")
 
 	form = New(postData)
 
-	form.MinLength("first_name",100)
+	form.MinLength("first_name", 100)
 
-	if form.Valid(){
+	if form.Valid() {
 		t.Error("shows minlength of 100 met when data is shorter")
 	}
 
 	postData = url.Values{}
-	postData.Add("first_name","vishal")
+	postData.Add("first_name", "vishal")
 
 	form = New(postData)
 
@@ -124,7 +124,7 @@ func TestMinLength(t *testing.T){
 	if isError != "" {
 		t.Error("it shows error but it should not be")
 	}
-	form.MinLength("first_name",1)
+	form.MinLength("first_name", 1)
 
 	if !form.Valid() {
 		t.Error("shows minlength of 1 not met when data is correct")

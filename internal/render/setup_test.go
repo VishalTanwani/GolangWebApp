@@ -5,9 +5,9 @@ import (
 	"github.com/VishalTanwani/GolangWebApp/internal/config"
 	"github.com/VishalTanwani/GolangWebApp/internal/modals"
 	"github.com/alexedwards/scs/v2"
+	"log"
 	"net/http"
 	"os"
-	"log"
 	"testing"
 	"time"
 )
@@ -21,10 +21,10 @@ func TestMain(m *testing.M) {
 	//change this to true in production
 	testApp.InProduction = false
 
-	infoLog := log.New(os.Stdout, "INFO\t",log.Ldate|log.Ltime)
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	testApp.InfoLog = infoLog
 
-	errorLog := log.New(os.Stdout, "ERROR\t",log.Ldate|log.Ltime|log.Lshortfile)
+	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 	testApp.ErrorLog = errorLog
 	session = scs.New()
 

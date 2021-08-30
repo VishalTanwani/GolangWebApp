@@ -3,25 +3,30 @@ package handler
 import (
 	"encoding/json"
 	"github.com/VishalTanwani/GolangWebApp/internal/config"
+	"github.com/VishalTanwani/GolangWebApp/internal/driver"
 	"github.com/VishalTanwani/GolangWebApp/internal/forms"
-	"github.com/VishalTanwani/GolangWebApp/internal/modals"
 	"github.com/VishalTanwani/GolangWebApp/internal/helpers"
+	"github.com/VishalTanwani/GolangWebApp/internal/modals"
 	"github.com/VishalTanwani/GolangWebApp/internal/render"
+	"github.com/VishalTanwani/GolangWebApp/internal/repository"
+	"github.com/VishalTanwani/GolangWebApp/internal/repository/dbrepo"
 	"net/http"
 )
 
 //Repository is repository type
 type Repository struct {
 	App *config.AppConfig
+	DB  repository.DatabaseRepo
 }
 
 //Repo used by the handlers
 var Repo *Repository
 
 //NewRepo creates new Repository
-func NewRepo(a *config.AppConfig) *Repository {
+func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
+		DB:  dbrepo.NewPostgresRepo(db.SQL, a),
 	}
 }
 
@@ -69,7 +74,7 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 
 	out, err := json.MarshalIndent(resp, "", "  ")
 	if err != nil {
-		helpers.ServerError(w,err)
+		helpers.ServerError(w, err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -102,7 +107,7 @@ func (m *Repository) MakeReservation(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		helpers.ServerError(w,err)
+		helpers.ServerError(w, err)
 		return
 	}
 

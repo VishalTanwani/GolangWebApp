@@ -13,8 +13,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"path/filepath"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -30,10 +30,10 @@ func getRoutes() http.Handler {
 	//change this to true in production
 	app.InProduction = false
 
-	infoLog := log.New(os.Stdout, "INFO\t",log.Ldate|log.Ltime)
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	app.InfoLog = infoLog
 
-	errorLog := log.New(os.Stdout, "ERROR\t",log.Ldate|log.Ltime|log.Lshortfile)
+	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 	app.ErrorLog = errorLog
 
 	session = scs.New()
@@ -54,7 +54,7 @@ func getRoutes() http.Handler {
 
 	Repo := NewRepo(&app)
 	NewHandler(Repo)
-	render.NewTemplates(&app)
+	render.NewRenderer(&app)
 
 	mux := chi.NewRouter()
 
