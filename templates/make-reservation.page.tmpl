@@ -12,31 +12,40 @@
                 <input type="hidden" name="csrf_token" value={{.CSRFToken}}>
                 <div class="row">
                     <div>
-                    <label for="first_name" class="form-label">First name:</label>
-                    {{with .Form.Errors.Get "first_name"}}
-                        <label class="text-danger">{{.}}</label>
-                    {{end}}
+                        <label for="first_name" class="form-label">First name:</label>
+                        {{with .Form.Errors.Get "first_name"}}
+                            <label class="text-danger">{{.}}</label>
+                        {{end}}
                         <input required type="text" class="form-control {{with .Form.Errors.Get "first_name"}} is-invalid {{end}}" id="first_name" name="first_name" value="{{$res.FirstName}}" aria-describedby="StartDateHelp">
                     </div>
                     <div>
-                    <label for="last_name" class="form-label">Last name:</label>
-                    {{with .Form.Errors.Get "last_name"}}
-                        <label class="text-danger">{{.}}</label>
-                    {{end}}
+                        <label for="last_name" class="form-label">Last name:</label>
+                        {{with .Form.Errors.Get "last_name"}}
+                            <label class="text-danger">{{.}}</label>
+                        {{end}}
                         <input required type="text" class="form-control {{with .Form.Errors.Get "last_name"}} is-invalid {{end}}" id="last_name" name="last_name" value="{{$res.LastName}}" aria-describedby="StartDateHelp">
                     </div>
                     <div>
-                    <label for="email" class="form-label">Email:</label>
-                    {{with .Form.Errors.Get "email"}}
-                        <label class="text-danger">{{.}}</label>
-                    {{end}}
+                        <label for="start_date" class="form-label">Start date:</label>
+                        <input required type="text" class="form-control" id="start_date" name="start_date" aria-describedby="StartDateHelp">
+                    </div>
+                    <div>
+                        <label for="end_date" class="form-label">End date:</label>
+                        <input required type="text" class="form-control" id="end_date" name="end_date" aria-describedby="StartDateHelp">
+                    </div>
+                    <input type="hidden" name="room_id" value="1"/>
+                    <div>
+                        <label for="email" class="form-label">Email:</label>
+                        {{with .Form.Errors.Get "email"}}
+                            <label class="text-danger">{{.}}</label>
+                        {{end}}
                         <input required type="email" class="form-control {{with .Form.Errors.Get "email"}} is-invalid {{end}}" id="email" name="email" value="{{$res.Email}}" aria-describedby="StartDateHelp">
                     </div>
                     <div>
-                    <label for="phone" class="form-label">Phone number:</label>
-                    {{with .Form.Errors.Get "phone"}}
-                        <label class="text-danger">{{.}}</label>
-                    {{end}}
+                        <label for="phone" class="form-label">Phone number:</label>
+                        {{with .Form.Errors.Get "phone"}}
+                            <label class="text-danger">{{.}}</label>
+                        {{end}}
                         <input required type="text" class="form-control {{with .Form.Errors.Get "phone"}} is-invalid {{end}}" id="phone" name="phone" value="{{$res.Phone}}" aria-describedby="StartDateHelp">
                     </div>
                 </div>
