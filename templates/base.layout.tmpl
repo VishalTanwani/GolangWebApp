@@ -124,14 +124,11 @@
             <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.1.4/dist/js/datepicker-full.min.js"></script>
             <script src="https://unpkg.com/notie"></script>
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script src="/static/js/app.js"></script>
 
-            {{block "js" .}}
             
-            {{end}}
 
             <script>
-                let myFunc = Prompt();
-
                 (function () {
                     "use strict";
 
@@ -171,6 +168,94 @@
                     });
                 }
 
+                function searchPopup(id) {
+                    document.getElementById("check-availability-button").addEventListener("click", function () {
+                        // notify("this is message", "success");
+                        // notifyModal("title", "<em>hello, world</em>", "success", "my text")
+                        let html = `<form
+                            action="reservation.html"
+                            id="check-availability-form"
+                            method="GET"
+                            novalidate
+                            autocomplete="off"
+                            class="needs-validation"
+                        >
+                            <div class="row">
+                                <div class="col">
+                                    <div class="row" id="reservation-date-modal">
+                                        <div class="col">
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                name="start_date"
+                                                id="start_date"
+                                                required
+                                                disabled
+                                                placeholder="Arrival"
+                                            />
+                                        </div>
+
+                                        <div class="col">
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                name="end_date"
+                                                id="end_date"
+                                                required
+                                                disabled
+                                                placeholder="Departure"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>`;
+                        myFunc.custom({ 
+                            title: "Choose yours dates", 
+                            html: html, 
+                            willOpen: () => {
+                                const elem = document.getElementById("reservation-date-modal");
+                                const rangepicker = new DateRangePicker(elem, {
+                                    format: "yyyy-mm-dd",
+                                    minDate: new Date(),
+                                });
+                            },
+                            didOpen: () => {
+                                document.getElementById("start_date").removeAttribute("disabled");
+                                document.getElementById("end_date").removeAttribute("disabled");
+                            },
+                            callback: function(){
+                                console.log("called");
+                                let form = document.getElementById("check-availability-form")
+                                let formData = new FormData(form)
+                                formData.append("csrf_token","{{.CSRFToken}}")
+                                formData.append("room_id",id)
+                                fetch("/search-availability-json", {
+                                    method: "post",
+                                    body: formData,
+                                    
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.ok) {
+                                        console.log(data)
+                                        myFunc.custom({
+                                            icon:"success",
+                                            showConfirmButton:false,
+                                            html:`<p>Room is available !</p>`+
+                                            `<p><a href=`+`/book-room?id=${data.room_id}&s=${data.start_date}&e=${data.end_date}`+` class="btn btn-primary">Book now!</a></p>`
+                                        })
+                                    } else {
+                                        myFunc.error({
+                                            msg:"no rooms are available"
+                                        })
+                                    }
+                                })
+                            } 
+                        });
+                    });
+                }
+
                 {{with .Error}}
                     notify("{{.}}","error")
                 {{end}}
@@ -183,101 +268,11 @@
                     notify("{{.}}","warning")
                 {{end}}
 
-                function Prompt() {
-                    let toast = function (obj) {
-                        const { msg = "", icon = "success", position = "top-end" } = obj;
-
-                        const Toast = Swal.mixin({
-                            toast: true,
-                            position: position,
-                            icon: icon,
-                            title: msg,
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true,
-                            didOpen: (toast) => {
-                            toast.addEventListener("mouseenter", Swal.stopTimer);
-                            toast.addEventListener("mouseleave", Swal.resumeTimer);
-                            },
-                        });
-
-                        Toast.fire({});
-                    };
-
-                    let success = function (obj) {
-                        const { msg = "", title = "", footer = "" } = obj;
-
-                        Swal.fire({
-                            icon: "success",
-                            title: title,
-                            text: msg,
-                            footer: footer,
-                        });
-                    };
-
-                    let error = function (obj) {
-                        const { msg = "", title = "", footer = "" } = obj;
-
-                        Swal.fire({
-                            icon: "error",
-                            title: title,
-                            text: msg,
-                            footer: footer,
-                        });
-                    };
-
-                    let custom = async function (obj) {
-                        const { title = "", html = "", showConfirmButton = true } = obj;
-                        const { value: result } = await Swal.fire({
-                            icon:obj.icon,
-                            title: title,
-                            html: html,
-                            backdrop: false,
-                            focusConfirm: false,
-                            showCancelButton: true,
-                            focusConfirm: false,
-                            showConfirmButton: showConfirmButton,
-                            willOpen: () => {
-                                if(obj.willOpen !== undefined) {
-                                    obj.willOpen()
-                                }
-                            },
-                            didOpen: () => {
-                                if(obj.didOpen !== undefined) {
-                                    obj.didOpen()
-                                }
-                            },
-                            preConfirm: () => {
-                                return [
-                                    document.getElementById("start_date").value,
-                                    document.getElementById("end_date").value,
-                                ];
-                            },
-                        });
-
-                        if (result) {
-                            if (result.dismiss !== Swal.DismissReason.cancel) {
-                                if (result.value !== "") {
-                                    if (obj.callback !== undefined) {
-                                        obj.callback(result)
-                                    }
-                                } else {
-                                    obj.callback(false)
-                                }
-                            } else {
-                                obj.callback(false)
-                            }
-                        }
-                    };
-
-                    return {
-                        toast: toast,
-                        success: success,
-                        error: error,
-                        custom: custom,
-                    };
-                }
+                
             </script>
+            {{block "js" .}}
+            
+            {{end}}
         </body>
     </html>
 
