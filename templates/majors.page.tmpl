@@ -45,8 +45,10 @@
             // notifyModal("title", "<em>hello, world</em>", "success", "my text")
             let html = `<form
                 action="reservation.html"
+                id="check-availability-form"
                 method="GET"
                 novalidate
+                autocomplete="off"
                 class="needs-validation"
             >
                 <div class="row">
@@ -79,7 +81,37 @@
                     </div>
                 </div>
             </form>`;
-            myFunc.custom({ title: "heelo gutan bag", html: html });
+            myFunc.custom({ 
+                title: "Choose yours dates", 
+                html: html, 
+                willOpen: () => {
+                    const elem = document.getElementById("reservation-date-modal");
+                    const rangepicker = new DateRangePicker(elem, {
+                        format: "yyyy-mm-dd",
+                        minDate: new Date(),
+                    });
+                },
+                didOpen: () => {
+                    document.getElementById("start").removeAttribute("disabled");
+                    document.getElementById("end").removeAttribute("disabled");
+                },
+                callback: function(){
+                    console.log("called");
+                    let form = document.getElementById("check-availability-form")
+                    let formData = new FormData(form)
+                    formData.append("csrf_token","{{.CSRFToken}}")
+                    formData.append("room_id","2")
+                    fetch("/search-availability-json", {
+                        method: "post",
+                        body: formData,
+                        
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data)
+                    })
+                } 
+            });
         });
     </script>
 {{end}}

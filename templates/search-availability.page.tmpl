@@ -10,6 +10,7 @@
             method="POST"
             novalidate
             class="needs-validation"
+            autocomplete="off"
           >
             <input type="hidden" name="csrf_token" value={{.CSRFToken}}>
             <div class="row">
@@ -19,7 +20,7 @@
                     <input
                       type="text"
                       class="form-control"
-                      name="start"
+                      name="start_date"
                       required
                       placeholder="Arrival"
                     />
@@ -29,7 +30,7 @@
                     <input
                       type="text"
                       class="form-control"
-                      name="end"
+                      name="end_date"
                       required
                       placeholder="Departure"
                     />
@@ -56,6 +57,7 @@
         const elem = document.getElementById("reservation-date");
         const rangepicker = new DateRangePicker(elem, {
             format: "yyyy-mm-dd",
+            minDate: new Date(),
         });
     </script>
 {{end}}

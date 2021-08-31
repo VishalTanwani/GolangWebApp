@@ -48,6 +48,7 @@
                 id="check-availability-form"
                 method="GET"
                 novalidate
+                autocomplete="off"
                 class="needs-validation"
             >
                 <div class="row">
@@ -87,6 +88,7 @@
                     const elem = document.getElementById("reservation-date-modal");
                     const rangepicker = new DateRangePicker(elem, {
                         format: "yyyy-mm-dd",
+                        minDate: new Date(),
                     });
                 },
                 didOpen: () => {
@@ -98,6 +100,7 @@
                     let form = document.getElementById("check-availability-form")
                     let formData = new FormData(form)
                     formData.append("csrf_token","{{.CSRFToken}}")
+                    formData.append("room_id","1")
                     fetch("/search-availability-json", {
                         method: "post",
                         body: formData,

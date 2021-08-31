@@ -64,7 +64,7 @@ func (m *postgresDBRepo) InsertRoomRestriction(res modals.RoomRestriction) error
 }
 
 //SearchAvailbilityByDates return status of availability of room
-func (m *postgresDBRepo) SearchAvailabilityByDates(start, end time.Time, roomID int) (bool, error) {
+func (m *postgresDBRepo) SearchAvailabilityByDatesByRoomID(start, end time.Time, roomID int) (bool, error) {
 
 	//if this transaction is taking longer then give time then time out
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -82,4 +82,53 @@ func (m *postgresDBRepo) SearchAvailabilityByDates(start, end time.Time, roomID 
 	}
 
 	return numRows == 0, nil
+}
+
+//SearchAvailbilityForAllRooms will give all the rooms available in given dates
+func (m *postgresDBRepo) SearchAvailbilityForAllRooms(start, end time.Time) ([]modals.Room, error) {
+
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var rooms []modals.Room
+	query := "select r.id, r.room_name from rooms r where r.id not in (select rr.room_id from room_restriction rr where $1 < rr.end_date and $2 > rr.start_date)"
+
+	rows, err := m.DB.QueryContext(ctx, query, start, end)
+	if err != nil {
+		return rooms, err
+	}
+
+	for rows.Next() {
+		var room modals.Room
+		err := rows.Scan(&room.ID, &room.RoomName)
+		if err != nil {
+			return rooms, err
+		}
+		rooms = append(rooms, room)
+	}
+
+	if err = rows.Err(); err != nil {
+		return rooms, err
+	}
+
+	return rooms, err
+
+}
+
+func (m *postgresDBRepo) GetRoomByID(id int) (modals.Room, error) {
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var room modals.Room
+	query := "select id, room_name from rooms where id = $1"
+
+	row := m.DB.QueryRowContext(ctx, query, id)
+
+	err := row.Scan(&room.ID, &room.RoomName)
+	if err != nil {
+		return room, err
+	}
+	return room, nil
 }
