@@ -227,14 +227,16 @@
                     };
 
                     let custom = async function (obj) {
-                        const { title = "", html = "" } = obj;
+                        const { title = "", html = "", showConfirmButton = true } = obj;
                         const { value: result } = await Swal.fire({
+                            icon:obj.icon,
                             title: title,
                             html: html,
                             backdrop: false,
                             focusConfirm: false,
                             showCancelButton: true,
                             focusConfirm: false,
+                            showConfirmButton: showConfirmButton,
                             willOpen: () => {
                                 if(obj.willOpen !== undefined) {
                                     obj.willOpen()
@@ -247,8 +249,8 @@
                             },
                             preConfirm: () => {
                                 return [
-                                    document.getElementById("start").value,
-                                    document.getElementById("end").value,
+                                    document.getElementById("start_date").value,
+                                    document.getElementById("end_date").value,
                                 ];
                             },
                         });

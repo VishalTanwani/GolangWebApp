@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/VishalTanwani/GolangWebApp/internal/config"
 	"github.com/VishalTanwani/GolangWebApp/internal/driver"
 	"github.com/VishalTanwani/GolangWebApp/internal/forms"
@@ -66,15 +65,51 @@ func (m *Repository) Availability(w http.ResponseWriter, r *http.Request) {
 }
 
 type jsonResponse struct {
-	Ok      bool   `json:"ok"`
-	Message string `json:"message"`
+	Ok        bool   `json:"ok"`
+	Message   string `json:"message"`
+	RoomID    string `json:"room_id"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
 }
 
 //AvailabilityJSON handle request and send json response
 func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
+
+	sd := r.Form.Get("start_date")
+	ed := r.Form.Get("end_date")
+	// go has defernt format for date like this Mon Jan 2 15:04:05 -0700 MST 2006
+	// so we have to provide ours
+	layout := "2006-01-02"
+
+	startDate, err := time.Parse(layout, sd)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	endDate, err := time.Parse(layout, ed)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	roomID, err := strconv.Atoi(r.Form.Get("room_id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	availability, err := m.DB.SearchAvailabilityByDatesByRoomID(startDate, endDate, roomID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
 	resp := jsonResponse{
-		Ok:      true,
-		Message: "Available",
+		Ok:        availability,
+		Message:   "",
+		StartDate: sd,
+		EndDate:   ed,
+		RoomID:    strconv.Itoa(roomID),
 	}
 
 	out, err := json.MarshalIndent(resp, "", "  ")
@@ -90,7 +125,6 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 	sd := r.Form.Get("start_date")
 	ed := r.Form.Get("end_date")
-	fmt.Println(sd, ed)
 	// go has defernt format for date like this Mon Jan 2 15:04:05 -0700 MST 2006
 	// so we have to provide ours
 	layout := "2006-01-02"
@@ -286,4 +320,42 @@ func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
 	m.App.Session.Put(r.Context(), "reservation", reservation)
 	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
 
+}
+
+//BookRoom to take user to make reservation room and some data to session
+func (m *Repository) BookRoom(w http.ResponseWriter, r *http.Request) {
+	roomID, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	sd := r.URL.Query().Get("s")
+	ed := r.URL.Query().Get("e")
+	layout := "2006-01-02"
+
+	startDate, err := time.Parse(layout, sd)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	endDate, err := time.Parse(layout, ed)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	var reservation modals.Reservation
+	reservation.RoomID = roomID
+	reservation.StartDate = startDate
+	reservation.EndDate = endDate
+
+	room, err := m.DB.GetRoomByID(reservation.RoomID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	reservation.Room = room
+
+	m.App.Session.Put(r.Context(), "reservation", reservation)
+	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
 }
