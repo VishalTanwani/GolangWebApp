@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"testing"
 	"time"
 )
 
@@ -24,7 +25,7 @@ var functions = template.FuncMap{}
 
 var pathToTemplates = "./../../templates"
 
-func getRoutes() http.Handler {
+func TestMain(m *testing.M) {
 	//what i am going to put in session
 	gob.Register(modals.Reservation{})
 	//change this to true in production
@@ -52,9 +53,15 @@ func getRoutes() http.Handler {
 	app.TemplateCache = tc
 	app.UseCache = true
 
-	Repo := NewRepo(&app)
+	Repo := NewTestRepo(&app)
 	NewHandler(Repo)
 	render.NewRenderer(&app)
+
+	os.Exit(m.Run())
+
+}
+
+func getRoutes() http.Handler {
 
 	mux := chi.NewRouter()
 

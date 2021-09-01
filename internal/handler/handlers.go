@@ -2,7 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
+	// "errors"
 	"github.com/VishalTanwani/GolangWebApp/internal/config"
 	"github.com/VishalTanwani/GolangWebApp/internal/driver"
 	"github.com/VishalTanwani/GolangWebApp/internal/forms"
@@ -11,10 +11,11 @@ import (
 	"github.com/VishalTanwani/GolangWebApp/internal/render"
 	"github.com/VishalTanwani/GolangWebApp/internal/repository"
 	"github.com/VishalTanwani/GolangWebApp/internal/repository/dbrepo"
-	"github.com/go-chi/chi/v5"
+	// "github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
 	"time"
+	"strings"
 )
 
 //Repository is repository type
@@ -31,6 +32,14 @@ func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
 		DB:  dbrepo.NewPostgresRepo(db.SQL, a),
+	}
+}
+
+//NewTestRepo creates new Repository
+func NewTestRepo(a *config.AppConfig) *Repository {
+	return &Repository{
+		App: a,
+		DB:  dbrepo.NewTestingRepo(a),
 	}
 }
 
@@ -74,7 +83,18 @@ type jsonResponse struct {
 
 //AvailabilityJSON handle request and send json response
 func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
-
+	err := r.ParseForm()
+	if err != nil {
+		resp := jsonResponse{
+			Ok:        false,
+			Message:   "error at parsing form",
+		}
+	
+		out, _ := json.MarshalIndent(resp, "", "  ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(out)
+		return
+	}
 	sd := r.Form.Get("start_date")
 	ed := r.Form.Get("end_date")
 	// go has defernt format for date like this Mon Jan 2 15:04:05 -0700 MST 2006
@@ -100,7 +120,14 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 
 	availability, err := m.DB.SearchAvailabilityByDatesByRoomID(startDate, endDate, roomID)
 	if err != nil {
-		helpers.ServerError(w, err)
+		resp := jsonResponse{
+			Ok:        false,
+			Message:   "error connecting database",
+		}
+	
+		out, _ := json.MarshalIndent(resp, "", "  ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(out)
 		return
 	}
 
@@ -112,17 +139,19 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 		RoomID:    strconv.Itoa(roomID),
 	}
 
-	out, err := json.MarshalIndent(resp, "", "  ")
-	if err != nil {
-		helpers.ServerError(w, err)
-		return
-	}
+	out, _ := json.MarshalIndent(resp, "", "  ")
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(out)
 }
 
 //PostAvailability is room availability page handler
 func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Cannot parse the form")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
 	sd := r.Form.Get("start_date")
 	ed := r.Form.Get("end_date")
 	// go has defernt format for date like this Mon Jan 2 15:04:05 -0700 MST 2006
@@ -144,10 +173,6 @@ func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
-	}
-
-	for _, room := range rooms {
-		m.App.InfoLog.Println("ROOM:", room.ID, room.RoomName)
 	}
 
 	if len(rooms) == 0 {
@@ -180,13 +205,17 @@ func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) MakeReservation(w http.ResponseWriter, r *http.Request) {
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(modals.Reservation)
 	if !ok {
-		helpers.ServerError(w, errors.New("Cannot get reservation out from sessiion"))
+		// helpers.ServerError(w, errors.New("Cannot get reservation out from sessiion"))
+		m.App.Session.Put(r.Context(), "error", "Cannot get reservation out from sessiion")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
 	room, err := m.DB.GetRoomByID(reservation.RoomID)
 	if err != nil {
-		helpers.ServerError(w, err)
+		// helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "Cant find a room")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -215,13 +244,16 @@ func (m *Repository) MakeReservation(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(modals.Reservation)
 	if !ok {
-		helpers.ServerError(w, errors.New("Cannot get reservation out from sessiion"))
+		// helpers.ServerError(w, errors.New("Cannot get reservation out from sessiion"))
+		m.App.Session.Put(r.Context(), "error", "Cannot get reservation out from sessiion")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
 	err := r.ParseForm()
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "Cannot parse the form")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -241,7 +273,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	if !form.Valid() {
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
-
+		http.Error(w,"form is not valid", http.StatusSeeOther)
 		render.Templates(w, r, "make-reservation.page.tmpl", &modals.TemplateData{
 			Form: form,
 			Data: data,
@@ -252,7 +284,8 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	//sending data to db
 	newReservationID, err := m.DB.InsertReservation(reservation)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "Cannot insert the reservation data")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -268,7 +301,8 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 	err = m.DB.InsertRoomRestriction(restriction)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "Cannot insert room restriction")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 	//writing reservatoin data to session
@@ -304,7 +338,10 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 
 //ChooseRoom is our chose room page
 func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
-	roomID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	// changed to this, so we can test it more easily
+	// split the URL up by /, and grab the 3rd element
+	exploded := strings.Split(r.RequestURI, "/")
+	roomID, err := strconv.Atoi(exploded[2])
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
