@@ -12,10 +12,11 @@ import (
 	"github.com/VishalTanwani/GolangWebApp/internal/repository"
 	"github.com/VishalTanwani/GolangWebApp/internal/repository/dbrepo"
 	// "github.com/go-chi/chi/v5"
+	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 )
 
 //Repository is repository type
@@ -86,10 +87,10 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		resp := jsonResponse{
-			Ok:        false,
-			Message:   "error at parsing form",
+			Ok:      false,
+			Message: "error at parsing form",
 		}
-	
+
 		out, _ := json.MarshalIndent(resp, "", "  ")
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(out)
@@ -121,10 +122,10 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 	availability, err := m.DB.SearchAvailabilityByDatesByRoomID(startDate, endDate, roomID)
 	if err != nil {
 		resp := jsonResponse{
-			Ok:        false,
-			Message:   "error connecting database",
+			Ok:      false,
+			Message: "error connecting database",
 		}
-	
+
 		out, _ := json.MarshalIndent(resp, "", "  ")
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(out)
@@ -273,7 +274,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	if !form.Valid() {
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
-		http.Error(w,"form is not valid", http.StatusSeeOther)
+		http.Error(w, "form is not valid", http.StatusSeeOther)
 		render.Templates(w, r, "make-reservation.page.tmpl", &modals.TemplateData{
 			Form: form,
 			Data: data,
@@ -305,6 +306,39 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
+
+	//send mail to guest
+	htmlMessage := fmt.Sprintf(`
+	<h1>happy bang</h1>
+		<strong>Reservation Confirmation</strong><br>
+		Dear %s, <br>
+		this is to confirm ur reservation from %s to %s
+	`, reservation.FirstName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
+	msg := modals.MailData{
+		From:    "jhon@cena.com",
+		To:      reservation.Email,
+		Subject: "Reservation Confirmation",
+		Content: htmlMessage,
+		Template:"basic.html",
+	}
+
+	m.App.MailChan <- msg
+
+	//send mail to owner
+	htmlMessage = fmt.Sprintf(`
+		<strong>Reservation Confirmation</strong><br>
+		Dear jhon cena, <br>
+		there is a one reservation in %s from %s to %s
+	`, reservation.Room.RoomName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
+	msg = modals.MailData{
+		From:    "reservation@no-reply.com",
+		To:      "jhon@cena.com",
+		Subject: "Reservation Confirmation",
+		Content: htmlMessage,
+	}
+
+	m.App.MailChan <- msg
+
 	//writing reservatoin data to session
 	m.App.Session.Put(r.Context(), "reservation", reservation)
 

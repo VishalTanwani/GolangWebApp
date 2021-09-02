@@ -61,3 +61,12 @@ type RoomRestriction struct {
 	Reservation   Reservation
 	Restriction   Restriction
 }
+
+//MailData is our mail model
+type MailData struct {
+	From    string
+	To      string
+	Subject string
+	Content string
+	Template string
+}
