@@ -1,12 +1,12 @@
 package main
 
 import (
-	"strings"
 	"fmt"
-	"io/ioutil"
 	"github.com/VishalTanwani/GolangWebApp/internal/modals"
 	"github.com/xhit/go-simple-mail/v2"
+	"io/ioutil"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -35,12 +35,12 @@ func sendMail(m modals.MailData) {
 	if m.Template == "" {
 		email.SetBody(mail.TextHTML, m.Content)
 	} else {
-		data,err := ioutil.ReadFile(fmt.Sprintf("./email-templates/%s",m.Template))
-		if err!=nil{
+		data, err := ioutil.ReadFile(fmt.Sprintf("./email-templates/%s", m.Template))
+		if err != nil {
 			log.Println(err)
 		}
 		mailTemplate := string(data)
-		msgToSend := strings.Replace(mailTemplate,"[%body%]",m.Content,1)
+		msgToSend := strings.Replace(mailTemplate, "[%body%]", m.Content, 1)
 		email.SetBody(mail.TextHTML, msgToSend)
 	}
 

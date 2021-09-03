@@ -47,10 +47,31 @@ func (m *testDBRepo) SearchAvailbilityForAllRooms(start, end time.Time) ([]modal
 	return rooms, nil
 }
 
+//GetRoomByID will get room by id
 func (m *testDBRepo) GetRoomByID(id int) (modals.Room, error) {
 	var room modals.Room
 	if id > 2 {
 		return room, errors.New("some error")
 	}
 	return room, nil
+}
+
+//GetUserByID will give user object
+func (m *testDBRepo) GetUserByID(id int) (modals.User, error) {
+	var user modals.User
+
+	return user, nil
+}
+
+//UpdateUser will update the given user
+func (m *testDBRepo) UpdateUser(user modals.User) error {
+	return nil
+}
+
+//Authenticate it will Authenticate a user
+func (m *testDBRepo) Authenticate(email, password string) (int, string, error) {
+	var id int
+	var hashedPassword string
+	return id, hashedPassword, nil
+
 }

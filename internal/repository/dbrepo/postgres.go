@@ -2,7 +2,9 @@ package dbrepo
 
 import (
 	"context"
+	"errors"
 	"github.com/VishalTanwani/GolangWebApp/internal/modals"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -116,6 +118,7 @@ func (m *postgresDBRepo) SearchAvailbilityForAllRooms(start, end time.Time) ([]m
 
 }
 
+//GetRoomByID will give room detials by id
 func (m *postgresDBRepo) GetRoomByID(id int) (modals.Room, error) {
 	//if this transaction is taking longer then give time then time out
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -131,4 +134,67 @@ func (m *postgresDBRepo) GetRoomByID(id int) (modals.Room, error) {
 		return room, err
 	}
 	return room, nil
+}
+
+//GetUserByID will give user object
+func (m *postgresDBRepo) GetUserByID(id int) (modals.User, error) {
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var user modals.User
+
+	query := "select first_name, last_name, email, password, access_level, created_at, updated_at from users where id = $1"
+
+	row := m.DB.QueryRowContext(ctx, query, id)
+
+	err := row.Scan(&user.FirstName, &user.LastName, &user.Email, &user.Password, &user.AccessLevel, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+//UpdateUser will update the given user
+func (m *postgresDBRepo) UpdateUser(user modals.User) error {
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := "update users set first_name = $1, last_name = $2, email = $3, access_level = $4, updated_at = $5"
+
+	_, err := m.DB.ExecContext(ctx, query, user.FirstName, user.LastName, user.Email, user.AccessLevel, user.CreatedAt, time.Now())
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//Authenticate it will Authenticate a user
+func (m *postgresDBRepo) Authenticate(email, password string) (int, string, error) {
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var id int
+	var hashedPassword string
+
+	query := "select id, password from users where email = $1"
+	row := m.DB.QueryRowContext(ctx, query, email)
+	err := row.Scan(&id, &hashedPassword)
+	if err != nil {
+		return id, "", err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		return id, "", errors.New("incorrect password")
+	} else if err != nil {
+		return id, "", err
+	}
+
+	return id, hashedPassword, nil
+
 }

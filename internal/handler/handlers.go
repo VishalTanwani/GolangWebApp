@@ -315,11 +315,11 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		this is to confirm ur reservation from %s to %s
 	`, reservation.FirstName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
 	msg := modals.MailData{
-		From:    "jhon@cena.com",
-		To:      reservation.Email,
-		Subject: "Reservation Confirmation",
-		Content: htmlMessage,
-		Template:"basic.html",
+		From:     "jhon@cena.com",
+		To:       reservation.Email,
+		Subject:  "Reservation Confirmation",
+		Content:  htmlMessage,
+		Template: "basic.html",
 	}
 
 	m.App.MailChan <- msg
@@ -429,4 +429,59 @@ func (m *Repository) BookRoom(w http.ResponseWriter, r *http.Request) {
 
 	m.App.Session.Put(r.Context(), "reservation", reservation)
 	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
+}
+
+//ShowLogin will show login page
+func (m *Repository) ShowLogin(w http.ResponseWriter, r *http.Request) {
+	render.Templates(w, r, "login.page.tmpl", &modals.TemplateData{
+		Form: forms.New(nil),
+	})
+}
+
+//PostShowLogin handels the login form
+func (m *Repository) PostShowLogin(w http.ResponseWriter, r *http.Request) {
+	_ = m.App.Session.RenewToken(r.Context())
+
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	email := r.Form.Get("email")
+	password := r.Form.Get("password")
+
+	form := forms.New(r.PostForm)
+	form.Required("email", "password")
+	form.IsEmail("email")
+	if !form.Valid() {
+		render.Templates(w, r, "login.page.tmpl", &modals.TemplateData{
+			Form: form,
+		})
+		return
+	}
+
+	id, _, err := m.DB.Authenticate(email, password)
+	if err != nil {
+		fmt.Println(err)
+		m.App.Session.Put(r.Context(), "error", "invalid email and password")
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "user_id", id)
+	m.App.Session.Put(r.Context(), "flash", "Logged in successfully")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+
+}
+
+//Logout logout out user
+func (m *Repository) Logout(w http.ResponseWriter, r *http.Request) {
+	_ = m.App.Session.Destroy(r.Context())
+	_ = m.App.Session.RenewToken(r.Context())
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
+//AdminDashboard will open admin dash board
+func (m *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
+	render.Templates(w, r, "admin-dashboard.page.tmpl", &modals.TemplateData{})
 }

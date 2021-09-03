@@ -69,7 +69,7 @@ func TestMain(m *testing.M) {
 
 func listenForMail() {
 	for {
-		_  = <- app.MailChan
+		_ = <-app.MailChan
 	}
 }
 
