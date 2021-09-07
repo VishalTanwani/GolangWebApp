@@ -75,3 +75,21 @@ func (m *testDBRepo) Authenticate(email, password string) (int, string, error) {
 	return id, hashedPassword, nil
 
 }
+
+//GetAllReservations will return all reservation
+func (m *testDBRepo) GetAllReservations() ([]modals.Reservation, error) {
+	var reservations []modals.Reservation
+	return reservations, nil
+}
+
+//GetAllNewReservations will return all new reservation
+func (m *testDBRepo) GetAllNewReservations() ([]modals.Reservation, error) {
+	var reservations []modals.Reservation
+	return reservations, nil
+}
+
+//GetReservationByID will return one reservation by id
+func (m *testDBRepo) GetReservationByID(id int) (modals.Reservation, error) {
+	var reservation modals.Reservation
+	return reservation, nil
+}

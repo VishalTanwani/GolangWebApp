@@ -444,7 +444,8 @@ func (m *Repository) PostShowLogin(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseForm()
 	if err != nil {
-		fmt.Println(err)
+		helpers.ServerError(w, err)
+		return
 	}
 
 	email := r.Form.Get("email")
@@ -486,17 +487,68 @@ func (m *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
 	render.Templates(w, r, "admin-dashboard.page.tmpl", &modals.TemplateData{})
 }
 
-//AdminNewReservations will open admin dash board
+//AdminNewReservations will open admin dash board which will show all new reervations
 func (m *Repository) AdminNewReservations(w http.ResponseWriter, r *http.Request) {
-	render.Templates(w, r, "admin-new-reservations.page.tmpl", &modals.TemplateData{})
+	reservations, err := m.DB.GetAllNewReservations()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservations"] = reservations
+	render.Templates(w, r, "admin-new-reservations.page.tmpl", &modals.TemplateData{
+		Data: data,
+	})
 }
 
-//AdminAllReservations will open admin dash board
+//AdminAllReservations will open admin dash board which will show all reervations
 func (m *Repository) AdminAllReservations(w http.ResponseWriter, r *http.Request) {
-	render.Templates(w, r, "admin-all-reservations.page.tmpl", &modals.TemplateData{})
+	reservations, err := m.DB.GetAllReservations()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservations"] = reservations
+	render.Templates(w, r, "admin-all-reservations.page.tmpl", &modals.TemplateData{
+		Data: data,
+	})
 }
 
 //AdminCalendarReservations will open admin dash board
 func (m *Repository) AdminCalendarReservations(w http.ResponseWriter, r *http.Request) {
 	render.Templates(w, r, "admin-calendar-reservations.page.tmpl", &modals.TemplateData{})
+}
+
+//AdminShowReservations will open admin dash board
+func (m *Repository) AdminShowReservations(w http.ResponseWriter, r *http.Request) {
+	url := strings.Split(r.RequestURI, "/")
+	id,err := strconv.Atoi(url[4])
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	
+	src := url[3]
+
+	stringMap := make(map[string]string)
+	stringMap["src"] = src
+
+	reservation,err := m.DB.GetReservationByID(id)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservation"] = reservation
+	
+
+	render.Templates(w, r, "admin-show-reservations.page.tmpl", &modals.TemplateData{
+		StringMap: stringMap,
+		Data: data,
+		Form: forms.New(nil),
+	})
 }

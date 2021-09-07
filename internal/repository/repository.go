@@ -16,4 +16,7 @@ type DatabaseRepo interface {
 	GetUserByID(id int) (modals.User, error)
 	UpdateUser(user modals.User) error
 	Authenticate(email, password string) (int, string, error)
+	GetAllReservations() ([]modals.Reservation, error)
+	GetAllNewReservations() ([]modals.Reservation, error)
+	GetReservationByID(id int) (modals.Reservation, error)
 }

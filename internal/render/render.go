@@ -10,12 +10,21 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"time"
 )
 
-var functions = template.FuncMap{}
+//all the functions which will be availabe to golang template
+var functions = template.FuncMap{
+	"humanDate": HumanDate,
+}
 
 var app *config.AppConfig
 var pathToTemplates = "./templates"
+
+//HumanDate convert time to string
+func HumanDate(t time.Time) string {
+	return t.Format("2006-01-02")
+}
 
 //NewRenderer set the template for the template package
 func NewRenderer(a *config.AppConfig) {

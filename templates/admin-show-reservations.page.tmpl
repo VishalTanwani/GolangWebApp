@@ -1,0 +1,51 @@
+{{template "admin" .}}
+
+{{define "page-title"}}
+    Reservations
+{{end}}
+
+{{define "content"}}
+    {{$res := index .Data "reservation"}}
+    {{$src := index .StringMap "src"}}
+    <div class="col-md-12">
+        <p>
+            <strong>Arrival: </strong> {{humanDate $res.StartDate}}<br>
+            <strong>Departure: </strong> {{humanDate $res.EndDate}}<br>
+            <strong>Room: </strong> {{$res.Room.RoomName}}<br>
+        </p>
+        <form action="/admin/reservations/{{$src}}/{{$res.ID}}" method="POST" novalidate>
+            <input type="hidden" name="csrf_token" value={{.CSRFToken}}>
+            <div class="form-group mt-3">
+                <label for="first_name" class="form-label">First name:</label>
+                    {{with .Form.Errors.Get "first_name"}}
+                        <label class="text-danger">{{.}}</label>
+                    {{end}}
+                <input required type="text" class="form-control {{with .Form.Errors.Get "first_name"}} is-invalid {{end}}" id="first_name" name="first_name" value="{{$res.FirstName}}" aria-describedby="StartDateHelp">
+            </div>
+            <div class="form-group">    
+                <label for="last_name" class="form-label">Last name:</label>
+                    {{with .Form.Errors.Get "last_name"}}
+                        <label class="text-danger">{{.}}</label>
+                    {{end}}
+                 <input required type="text" class="form-control {{with .Form.Errors.Get "last_name"}} is-invalid {{end}}" id="last_name" name="last_name" value="{{$res.LastName}}" aria-describedby="StartDateHelp">
+            </div>                    
+            <div class="form-group">                                    
+                <label for="email" class="form-label">Email:</label>
+                    {{with .Form.Errors.Get "email"}}
+                        <label class="text-danger">{{.}}</label>
+                    {{end}}
+                <input required type="email" class="form-control {{with .Form.Errors.Get "email"}} is-invalid {{end}}" id="email" name="email" value="{{$res.Email}}" aria-describedby="StartDateHelp">
+            </div>  
+            <div class="form-group">    
+                <label for="phone" class="form-label">Phone number:</label>
+                    {{with .Form.Errors.Get "phone"}}
+                        <label class="text-danger">{{.}}</label>
+                    {{end}}
+                <input required type="text" class="form-control {{with .Form.Errors.Get "phone"}} is-invalid {{end}}" id="phone" name="phone" value="{{$res.Phone}}" aria-describedby="StartDateHelp">
+            </div>
+            <hr>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="/admin/reservations-{{$src}}" class="btn btn-warning">Cancel</a>
+        </form>
+    </div>
+{{end}}
