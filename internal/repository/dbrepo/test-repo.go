@@ -93,3 +93,18 @@ func (m *testDBRepo) GetReservationByID(id int) (modals.Reservation, error) {
 	var reservation modals.Reservation
 	return reservation, nil
 }
+
+//UpdateReservation will update the given reservation
+func (m *testDBRepo) UpdateReservation(reservation modals.Reservation) error {
+	return nil
+}
+
+//DeleteReservation will delete the reservation
+func (m *testDBRepo) DeleteReservation(id int) error {
+	return nil
+}
+
+//UpdateProcssedForReservation will delete the reservation
+func (m *testDBRepo) UpdateProcssedForReservation(id, processed int) error {
+	return nil
+}

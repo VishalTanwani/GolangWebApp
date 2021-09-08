@@ -11,7 +11,7 @@ import (
 	"github.com/VishalTanwani/GolangWebApp/internal/render"
 	"github.com/VishalTanwani/GolangWebApp/internal/repository"
 	"github.com/VishalTanwani/GolangWebApp/internal/repository/dbrepo"
-	// "github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -525,18 +525,18 @@ func (m *Repository) AdminCalendarReservations(w http.ResponseWriter, r *http.Re
 //AdminShowReservations will open admin dash board
 func (m *Repository) AdminShowReservations(w http.ResponseWriter, r *http.Request) {
 	url := strings.Split(r.RequestURI, "/")
-	id,err := strconv.Atoi(url[4])
+	id, err := strconv.Atoi(url[4])
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
-	
+
 	src := url[3]
 
 	stringMap := make(map[string]string)
 	stringMap["src"] = src
 
-	reservation,err := m.DB.GetReservationByID(id)
+	reservation, err := m.DB.GetReservationByID(id)
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
@@ -544,11 +544,86 @@ func (m *Repository) AdminShowReservations(w http.ResponseWriter, r *http.Reques
 
 	data := make(map[string]interface{})
 	data["reservation"] = reservation
-	
 
 	render.Templates(w, r, "admin-show-reservations.page.tmpl", &modals.TemplateData{
 		StringMap: stringMap,
-		Data: data,
-		Form: forms.New(nil),
+		Data:      data,
+		Form:      forms.New(nil),
 	})
+}
+
+//AdminPostShowReservations will open admin dash board
+func (m *Repository) AdminPostShowReservations(w http.ResponseWriter, r *http.Request) {
+	url := strings.Split(r.RequestURI, "/")
+	id, err := strconv.Atoi(url[4])
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	src := url[3]
+
+	reservation, err := m.DB.GetReservationByID(id)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	reservation.FirstName = r.Form.Get("first_name")
+	reservation.LastName = r.Form.Get("last_name")
+	reservation.Email = r.Form.Get("email")
+	reservation.Phone = r.Form.Get("phone")
+
+	err = m.DB.UpdateReservation(reservation)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "flash", "Reservation updated")
+	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+}
+
+//AdminProcessReservation will open process a reservation
+func (m *Repository) AdminProcessReservation(w http.ResponseWriter, r *http.Request) {
+	id,err := strconv.Atoi(chi.URLParam(r,"id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	src := chi.URLParam(r,"src")
+
+	err = m.DB.UpdateProcssedForReservation(id,1)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "flash", "Reservation marked as processed")
+	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+}
+
+//AdminDeleteReservation will delete a reservation
+func (m *Repository) AdminDeleteReservation(w http.ResponseWriter, r *http.Request) {
+	id,err := strconv.Atoi(chi.URLParam(r,"id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	src := chi.URLParam(r,"src")
+
+	err = m.DB.DeleteReservation(id)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "flash", "Reservation deleted")
+	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
 }

@@ -64,12 +64,6 @@ function Prompt() {
                     obj.didOpen()
                 }
             },
-            preConfirm: () => {
-                return [
-                    document.getElementById("start_date").value,
-                    document.getElementById("end_date").value,
-                ];
-            },
         });
 
         if (result) {

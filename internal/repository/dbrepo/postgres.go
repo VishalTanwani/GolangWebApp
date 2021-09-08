@@ -164,7 +164,7 @@ func (m *postgresDBRepo) UpdateUser(user modals.User) error {
 
 	query := "update users set first_name = $1, last_name = $2, email = $3, access_level = $4, updated_at = $5"
 
-	_, err := m.DB.ExecContext(ctx, query, user.FirstName, user.LastName, user.Email, user.AccessLevel, user.CreatedAt, time.Now())
+	_, err := m.DB.ExecContext(ctx, query, user.FirstName, user.LastName, user.Email, user.AccessLevel, time.Now())
 
 	if err != nil {
 		return err
@@ -298,4 +298,52 @@ func (m *postgresDBRepo) GetReservationByID(id int) (modals.Reservation, error) 
 	}
 
 	return reservation, nil
+}
+
+//UpdateReservation will update the given reservation
+func (m *postgresDBRepo) UpdateReservation(reservation modals.Reservation) error {
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := "update reservations set first_name = $1, last_name = $2, email = $3, phone = $4, updated_at = $5 where id = $6"
+
+	_, err := m.DB.ExecContext(ctx, query, reservation.FirstName, reservation.LastName, reservation.Email, reservation.Phone, time.Now(), reservation.ID)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//DeleteReservation will delete the reservation
+func (m *postgresDBRepo) DeleteReservation(id int) error {
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := "delete from reservations where id = $1"
+
+	_, err := m.DB.ExecContext(ctx, query, id)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//UpdateProcssedForReservation will delete the reservation
+func (m *postgresDBRepo) UpdateProcssedForReservation(id, processed int) error {
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := "update reservations set processed = $1 where id = $2"
+
+	_, err := m.DB.ExecContext(ctx, query, processed, id)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

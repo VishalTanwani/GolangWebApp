@@ -15,6 +15,11 @@
         <!-- End plugin css for this page -->
         <!-- inject:css -->
         <link rel="stylesheet" href="/static/admin/css/style.css">
+        <link
+            rel="stylesheet"
+            type="text/css"
+            href="https://unpkg.com/notie/dist/notie.min.css"
+        />
         <!-- endinject -->
         <link rel="shortcut icon" href="/static/admin/images/favicon.png"/>
         <style>
@@ -23,6 +28,9 @@
             }
             label{
                 font-weight: bold;
+            }
+            .notie-container{
+                z-index: 50000;
             }
         </style>
         {{block "css" . }}
@@ -139,8 +147,40 @@
     <script src="/static/admin/js/todolist.js"></script>
     <!-- endinject -->
     <!-- Custom js for this page-->
+    <script src="https://unpkg.com/notie"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/js/app.js"></script>
     <script src="/static/admin/js/dashboard.js"></script>
     <!-- End custom js for this page-->
+    <script>
+        function notify(msg, msgType) {
+            notie.alert({
+                type: msgType,
+                text: msg,
+            });
+        }
+
+        function notifyModal(title, text, icon, confirmButtonText) {
+            Swal.fire({
+                title: title,
+                html: text,
+                icon: icon,
+                confirmButtonText: confirmButtonText,
+            });
+        }
+
+        {{with .Error}}
+            notify(`{{.}}`,"error")
+        {{end}}
+
+        {{with .Flash}}
+            notify(`{{.}}`,"success")
+        {{end}}
+
+        {{with .Warning}}
+            notify(`{{.}}`,"warning")
+        {{end}}          
+    </script>
 
     {{block "js" . }}
 
