@@ -108,3 +108,15 @@ func (m *testDBRepo) DeleteReservation(id int) error {
 func (m *testDBRepo) UpdateProcssedForReservation(id, processed int) error {
 	return nil
 }
+
+//AllRooms will delete the reservation
+func (m *testDBRepo) AllRooms() ([]modals.Room, error) {
+	var rooms []modals.Room
+	return rooms, nil
+}
+
+//GetRestrictionsForRoomByDate will give room restriction by id na ddates
+func (m *testDBRepo) GetRestrictionsForRoomByDate(id int, start, end time.Time) ([]modals.RoomRestriction, error) {
+	var restrictions []modals.RoomRestriction
+	return restrictions, nil
+}

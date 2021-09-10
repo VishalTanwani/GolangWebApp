@@ -347,3 +347,65 @@ func (m *postgresDBRepo) UpdateProcssedForReservation(id, processed int) error {
 	}
 	return nil
 }
+
+//AllRooms will delete the reservation
+func (m *postgresDBRepo) AllRooms() ([]modals.Room, error) {
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var rooms []modals.Room
+
+	query := "select id, room_name, created_at, updated_at from rooms"
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	defer rows.Close()
+	if err != nil {
+		return rooms, err
+	}
+
+	for rows.Next() {
+		var room modals.Room
+		err := rows.Scan(&room.ID, &room.RoomName, &room.CreatedAt, &room.UpdatedAt)
+		if err != nil {
+			return rooms, err
+		}
+		rooms = append(rooms, room)
+	}
+
+	if err = rows.Err(); err != nil {
+		return rooms, err
+	}
+	return rooms, nil
+}
+
+//GetRestrictionsForRoomByDate will give room restriction by id na ddates
+func (m *postgresDBRepo) GetRestrictionsForRoomByDate(id int, start, end time.Time) ([]modals.RoomRestriction, error) {
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var restrictions []modals.RoomRestriction
+
+	query := "select id, coalesce(reservation_id, 0), restriction_id, room_id, start_date, end_date from room_restriction where $1 < end_date and $2 >= start_date and room_id = $3"
+	rows, err := m.DB.QueryContext(ctx, query, start, end, id)
+	defer rows.Close()
+	if err != nil {
+		return restrictions, err
+	}
+
+	for rows.Next() {
+		var rr modals.RoomRestriction
+		err := rows.Scan(&rr.ID, &rr.ReservationID, &rr.RestrictionID, &rr.RoomID, &rr.StartDate, &rr.EndDate)
+		if err != nil {
+			return restrictions, err
+		}
+		restrictions = append(restrictions, rr)
+	}
+	if err = rows.Err(); err != nil {
+		return restrictions, err
+	}
+
+	return restrictions, nil
+
+}

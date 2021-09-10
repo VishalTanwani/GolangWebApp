@@ -15,7 +15,9 @@ import (
 
 //all the functions which will be availabe to golang template
 var functions = template.FuncMap{
-	"humanDate": HumanDate,
+	"humanDate":  HumanDate,
+	"formatDate": FormatDate,
+	"iterate":    Iterate,
 }
 
 var app *config.AppConfig
@@ -26,9 +28,24 @@ func HumanDate(t time.Time) string {
 	return t.Format("2006-01-02")
 }
 
+//FormatDate will format the date to given format
+func FormatDate(t time.Time, f string) string {
+	return t.Format(f)
+}
+
 //NewRenderer set the template for the template package
 func NewRenderer(a *config.AppConfig) {
 	app = a
+}
+
+//Iterate will return slive of int from 1 to count
+func Iterate(count int) []int {
+	var i int
+	var items []int
+	for i = 1; i <= count; i++ {
+		items = append(items, i)
+	}
+	return items
 }
 
 //AddDefaultData will add default data to all templates

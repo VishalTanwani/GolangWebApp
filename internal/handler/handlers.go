@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	// "errors"
+	"fmt"
 	"github.com/VishalTanwani/GolangWebApp/internal/config"
 	"github.com/VishalTanwani/GolangWebApp/internal/driver"
 	"github.com/VishalTanwani/GolangWebApp/internal/forms"
@@ -12,7 +13,6 @@ import (
 	"github.com/VishalTanwani/GolangWebApp/internal/repository"
 	"github.com/VishalTanwani/GolangWebApp/internal/repository/dbrepo"
 	"github.com/go-chi/chi/v5"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -519,7 +519,107 @@ func (m *Repository) AdminAllReservations(w http.ResponseWriter, r *http.Request
 
 //AdminCalendarReservations will open admin dash board
 func (m *Repository) AdminCalendarReservations(w http.ResponseWriter, r *http.Request) {
-	render.Templates(w, r, "admin-calendar-reservations.page.tmpl", &modals.TemplateData{})
+	//assume that there is no month/year specified
+	now := time.Now()
+	err := r.ParseForm()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	if r.URL.Query().Get("y") != "" {
+		year, err := strconv.Atoi(r.URL.Query().Get("y"))
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
+		month, err := strconv.Atoi(r.URL.Query().Get("m"))
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
+		now = time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	}
+
+	next := now.AddDate(0, 1, 0)
+	last := now.AddDate(0, -1, 0)
+
+	data := make(map[string]interface{})
+	data["now"] = now
+
+	nextMonth := next.Format("01")
+	nextYear := next.Format("2006")
+
+	lastMonth := last.Format("01")
+	lastYear := last.Format("2006")
+
+	stringMap := make(map[string]string)
+
+	stringMap["next_month"] = nextMonth
+	stringMap["next_month_year"] = nextYear
+	stringMap["last_month"] = lastMonth
+	stringMap["last_month_year"] = lastYear
+	stringMap["this_month"] = now.Format("01")
+	stringMap["this_month_year"] = now.Format("2006")
+
+	//get the first and last days of the month
+	currentYear, currentMonth, _ := now.Date()
+	currentLocation := now.Location()
+	firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
+	lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
+
+	intMap := make(map[string]int)
+	intMap["days_in_month"] = lastOfMonth.Day()
+
+	rooms, err := m.DB.AllRooms()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data["rooms"] = rooms
+
+	for _, x := range rooms {
+		//create maps
+		reservationMap := make(map[string]int)
+		blockMap := make(map[string]int)
+
+		for d := firstOfMonth; d.After(lastOfMonth) == false; d = d.AddDate(0, 0, 1) {
+			reservationMap[d.Format("2006-01-2")] = 0
+			blockMap[d.Format("2006-01-2")] = 0
+		}
+
+		//get all restrictions
+		restrictions, err := m.DB.GetRestrictionsForRoomByDate(x.ID, firstOfMonth, lastOfMonth)
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
+
+		for _, y := range restrictions {
+			if y.ReservationID > 0 {
+				//reservations
+				// fmt.Println(y.ReservationID)
+				for d := y.StartDate; d.After(y.EndDate) == false; d = d.AddDate(0, 0, 1) {
+					reservationMap[d.Format("2006-01-2")] = y.ReservationID
+				}
+				// fmt.Println(reservationMap)
+			} else {
+				blockMap[y.StartDate.Format("2006-01-2")] = y.ID
+
+			}
+		}
+
+		data[fmt.Sprintf("reservation_map_%d", x.ID)] = reservationMap
+		data[fmt.Sprintf("block_map_%d", x.ID)] = blockMap
+
+		m.App.Session.Put(r.Context(), fmt.Sprintf("block_map_%d", x.ID), blockMap)
+	}
+
+	render.Templates(w, r, "admin-calendar-reservations.page.tmpl", &modals.TemplateData{
+		StringMap: stringMap,
+		Data:      data,
+		IntMap:    intMap,
+	})
 }
 
 //AdminShowReservations will open admin dash board
@@ -592,14 +692,14 @@ func (m *Repository) AdminPostShowReservations(w http.ResponseWriter, r *http.Re
 
 //AdminProcessReservation will open process a reservation
 func (m *Repository) AdminProcessReservation(w http.ResponseWriter, r *http.Request) {
-	id,err := strconv.Atoi(chi.URLParam(r,"id"))
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
-	src := chi.URLParam(r,"src")
+	src := chi.URLParam(r, "src")
 
-	err = m.DB.UpdateProcssedForReservation(id,1)
+	err = m.DB.UpdateProcssedForReservation(id, 1)
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
@@ -611,12 +711,12 @@ func (m *Repository) AdminProcessReservation(w http.ResponseWriter, r *http.Requ
 
 //AdminDeleteReservation will delete a reservation
 func (m *Repository) AdminDeleteReservation(w http.ResponseWriter, r *http.Request) {
-	id,err := strconv.Atoi(chi.URLParam(r,"id"))
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
-	src := chi.URLParam(r,"src")
+	src := chi.URLParam(r, "src")
 
 	err = m.DB.DeleteReservation(id)
 	if err != nil {
