@@ -3,10 +3,10 @@ package dbrepo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/VishalTanwani/GolangWebApp/internal/modals"
 	"golang.org/x/crypto/bcrypt"
 	"time"
-	// "fmt"
 )
 
 func (m *postgresDBRepo) AllUsers() bool {
@@ -408,4 +408,36 @@ func (m *postgresDBRepo) GetRestrictionsForRoomByDate(id int, start, end time.Ti
 
 	return restrictions, nil
 
+}
+
+//InsertBlockForRoom insert the block for room
+func (m *postgresDBRepo) InsertBlockForRoom(id int, start time.Time) error {
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := "insert into room_restriction (start_date, end_date, room_id, restriction_id, created_at, updated_at) values($1, $2, $3, $4, $5, $6)"
+
+	_, err := m.DB.ExecContext(ctx, query, start, start.AddDate(0, 0, 1), id, 2, time.Now(), time.Now())
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+//DeleteBlockByID delete the block by id
+func (m *postgresDBRepo) DeleteBlockByID(id int) error {
+	//if this transaction is taking longer then give time then time out
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := "delete from room_restriction where id = $1"
+
+	_, err := m.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
 }

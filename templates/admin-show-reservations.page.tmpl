@@ -15,6 +15,8 @@
         </p>
         <form action="/admin/reservations/{{$src}}/{{$res.ID}}" method="POST" novalidate>
             <input type="hidden" name="csrf_token" value={{.CSRFToken}}>
+            <input type="hidden" name="year" value={{index .StringMap "year"}}>
+            <input type="hidden" name="month" value={{index .StringMap "month"}}>
             <div class="form-group mt-3">
                 <label for="first_name" class="form-label">First name:</label>
                     {{with .Form.Errors.Get "first_name"}}
@@ -51,7 +53,9 @@
                 {{else}}
                     <a href="/admin/reservations-{{$src}}" class="btn btn-warning">Cancel</a>
                 {{end}}
-                <a href="#!" class="btn btn-info" onclick="processRes({{$res.ID}})">Mark as Processed</a>
+                {{if eq $res.Processed 0}}
+                    <a href="#!" class="btn btn-info" onclick="processRes({{$res.ID}})">Mark as Processed</a>
+                {{end}}
             </div>
             <div class="float-right">
                 <a href="#!" class="btn btn-danger" onclick="deleteRes({{$res.ID}})">Delete</a>
@@ -69,7 +73,7 @@
                 title:'are u sure?',
                 callback: function(result){
                     if (result !== false) {
-                        window.location.href = "/admin/process-reservation/{{$src}}/"+id;
+                        window.location.href = "/admin/process-reservation/{{$src}}/"+id+"/do?y={{index .StringMap "year"}}&m={{index .StringMap "month"}}";
                     }
                 }
             })
@@ -80,7 +84,7 @@
                 title:'are u sure?',
                 callback: function(result){
                     if (result !== false) {
-                        window.location.href = "/admin/delete-reservation/{{$src}}/"+id;
+                        window.location.href = "/admin/delete-reservation/{{$src}}/"+id+"/do?y={{index .StringMap "year"}}&m={{index .StringMap "month"}}";
                     }
                 }
             })
