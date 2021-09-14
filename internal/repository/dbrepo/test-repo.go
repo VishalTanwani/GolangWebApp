@@ -70,9 +70,10 @@ func (m *testDBRepo) UpdateUser(user modals.User) error {
 
 //Authenticate it will Authenticate a user
 func (m *testDBRepo) Authenticate(email, password string) (int, string, error) {
-	var id int
-	var hashedPassword string
-	return id, hashedPassword, nil
+	if email == "admin@admin.com" {
+		return 1, "", nil
+	}
+	return 1,"",errors.New("invalid credentails")
 
 }
 
@@ -111,13 +112,19 @@ func (m *testDBRepo) UpdateProcssedForReservation(id, processed int) error {
 
 //AllRooms will delete the reservation
 func (m *testDBRepo) AllRooms() ([]modals.Room, error) {
-	var rooms []modals.Room
+	rooms := []modals.Room {
+		{ID:1,RoomName:"room1",CreatedAt:time.Now(),UpdatedAt:time.Now()},
+		// {ID:2,RoomName:"room2",CreatedAt:time.Now(),UpdatedAt:time.Now()},
+	}
 	return rooms, nil
 }
 
 //GetRestrictionsForRoomByDate will give room restriction by id na ddates
 func (m *testDBRepo) GetRestrictionsForRoomByDate(id int, start, end time.Time) ([]modals.RoomRestriction, error) {
-	var restrictions []modals.RoomRestriction
+	restrictions := []modals.RoomRestriction{
+		{ID:1,RoomID:1,ReservationID:1,RestrictionID:1},
+		{ID:2,RoomID:2,ReservationID:0,RestrictionID:2},
+	}
 	return restrictions, nil
 }
 
